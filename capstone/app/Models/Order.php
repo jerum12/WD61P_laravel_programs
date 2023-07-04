@@ -12,4 +12,10 @@ class Order extends Model
     protected $table = 'table_order';
 
     protected $fillable = ['order_details','order_date','order_quantity','total_amount','product_id'];
+
+      // Define relationships
+      public function order()
+      {
+          return $this->belongsTo(Product::class);
+      }
 }
