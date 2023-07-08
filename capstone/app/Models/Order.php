@@ -19,3 +19,4 @@ class Order extends Model
           return $this->belongsTo(Product::class);
       }
 }
+//composer require laravel/passport --with-all-dependencies 

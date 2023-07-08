@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class UserAuthenticationController extends Controller
 {
@@ -44,7 +44,8 @@ class UserAuthenticationController extends Controller
         ]);
 
         if($validator->fails()){
-            return response(['error'=> $validator->errors()->all()],422);
+            $error = $validator->errors()->all();
+            return response(['error'=> $error[0]],422);
         }
         
         //check user in user table
