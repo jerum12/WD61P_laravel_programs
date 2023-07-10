@@ -1,5 +1,7 @@
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import {
   Alert,
   Button,
@@ -17,6 +19,9 @@ import axios from 'axios';
 import MUIDataTable from 'mui-datatables';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import toast from 'react-hot-toast';
+
 const style = {
   position: 'absolute',
   top: '50%',
@@ -70,16 +75,82 @@ function Services() {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const [transactionType, setTransactionType] = useState('');
+  const [id, setId] = useState('');
 
   const [formData, setFormData] = useState({
     service_name: '',
     service_details: '',
   });
 
-  const columns = ['Service Name', 'Service Details'];
+  const handleEdit = (rowIndex) => {
+    const rowData = data[rowIndex];
+    setOpen(true);
+    setSuccess(false);
+    setId(rowData.id);
+    setFormData({ service_name: rowData.service_name, service_details: rowData.service_details });
+    setTransactionType('edit');
+  };
+
+  const handleDelete = (rowIndex) => {
+    const rowData = data[rowIndex];
+    setOpen(true);
+    setSuccess(false);
+    setId(rowData.id);
+    setFormData({ service_name: rowData.service_name, service_details: rowData.service_details });
+    setTransactionType('delete');
+  };
+  //const columns = ['Service Name', 'Service Details'];
+  const columns = [
+    {
+      name: 'Service Name',
+      options: {
+        filter: true,
+        sort: true,
+      },
+    },
+    {
+      name: 'Service Details',
+      options: {
+        filter: true,
+        sort: true,
+      },
+    },
+    {
+      name: 'Actions',
+      options: {
+        filter: false,
+        sort: false,
+        customBodyRender: (value, tableMeta, updateValue) => {
+          const rowIndex = tableMeta.rowIndex;
+          return (
+            <>
+              <Button
+                variant="text"
+                startIcon={<EditIcon />}
+                color="primary"
+                onClick={() => handleEdit(rowIndex)}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="text"
+                startIcon={<DeleteIcon />}
+                color="error"
+                onClick={() => handleDelete(rowIndex)}
+              >
+                Delete
+              </Button>
+            </>
+          );
+        },
+      },
+    },
+  ];
+
   const options = {
-    filterType: 'checkbox',
-    selectableRows: false,
+    filterType: 'textField',
+    selectableRows: 'none',
   };
 
   useEffect(() => {
@@ -105,8 +176,13 @@ function Services() {
   }, [success]);
 
   const handleAdd = () => {
+    setFormData({
+      service_name: '',
+      service_details: '',
+    });
     setOpen(true);
     setSuccess(false);
+    setTransactionType('add');
   };
   const handleClose = () => {
     setOpen(false);
@@ -119,7 +195,7 @@ function Services() {
     }));
   };
 
-  const handleSave = async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
     setSubmitLoading(true);
@@ -129,14 +205,60 @@ function Services() {
       return;
     } else {
       try {
-        const response = await axios.post('http://127.0.0.1:8000/api/services', formData, {
-          headers: {
-            Authorization: 'Bearer ' + localStorage.getItem('login_token'),
-          },
-        });
-        console.log(response);
+        if (transactionType === 'add') {
+          const response = await axios.post('http://127.0.0.1:8000/api/services', formData, {
+            headers: {
+              Authorization: 'Bearer ' + localStorage.getItem('login_token'),
+            },
+          });
+          console.log(response);
+        } else if (transactionType === 'edit') {
+          const response = await axios.put(`http://127.0.0.1:8000/api/services/${id}`, formData, {
+            headers: {
+              Authorization: 'Bearer ' + localStorage.getItem('login_token'),
+            },
+          });
+          console.log(response);
+        } else if (transactionType === 'delete') {
+          const response = await axios.delete(`http://127.0.0.1:8000/api/services/${id}`, {
+            headers: {
+              Authorization: 'Bearer ' + localStorage.getItem('login_token'),
+            },
+          });
+          console.log(response);
+        }
+
         handleClose();
         setSuccess(true);
+        const message =
+          transactionType == 'add'
+            ? 'Service successfully created!'
+            : transactionType === 'edit'
+            ? 'Service successfuly updated!'
+            : 'Service successfully deleted!';
+        toast(message, {
+          duration: 4000,
+          position: 'top-center',
+
+          // Styling
+          style: {},
+          className: '',
+
+          // Custom Icon
+          icon: '👏',
+
+          // Change colors of success/error/loading icon
+          iconTheme: {
+            primary: '#000',
+            secondary: '#fff',
+          },
+
+          // Aria
+          ariaProps: {
+            role: 'status',
+            'aria-live': 'polite',
+          },
+        });
         // navigate('/');
       } catch (error) {
         let errorMessage = error.response.data.error;
@@ -188,7 +310,11 @@ function Services() {
 
       <BootstrapDialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
         <BootstrapDialogTitle id="customized-dialog-title" onClose={handleClose}>
-          Add Services
+          {transactionType === 'add'
+            ? 'Add Services'
+            : transactionType === 'edit'
+            ? 'Edit Services'
+            : 'Delete Services'}
           {error && <Alert severity="error">{error}</Alert>}
         </BootstrapDialogTitle>
         <DialogContent dividers>
@@ -199,6 +325,7 @@ function Services() {
                 fullWidth
                 label="Service Name"
                 name="service_name"
+                disabled={transactionType === 'delete' ? true : false}
                 variant="standard"
                 value={formData.service_name}
                 onChange={handleChange}
@@ -211,6 +338,7 @@ function Services() {
                 label="Service Details"
                 name="service_details"
                 variant="standard"
+                disabled={transactionType === 'delete' ? true : false}
                 value={formData.service_details}
                 onChange={handleChange}
               />
@@ -221,10 +349,15 @@ function Services() {
           <Button
             variant="contained"
             style={{ display: 'block', width: '40%', margin: '10px auto' }}
-            onClick={handleSave}
+            onClick={handleSubmit}
             disabled={submitLoading}
           >
-            {submitLoading ? <CircularProgress size={'10px'} /> : ''}Add Service
+            {submitLoading ? <CircularProgress size={'10px'} /> : ''}{' '}
+            {transactionType === 'add'
+              ? 'Add Services'
+              : transactionType === 'edit'
+              ? 'Edit Services'
+              : 'Delete Services'}
           </Button>
         </DialogActions>
       </BootstrapDialog>
