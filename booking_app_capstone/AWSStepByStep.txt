@@ -1,0 +1,113 @@
+1.click windows type optional features
+2.check openssh client is installed
+3.open windows power shell
+4.type ssh -i "C:\Users\Admin\Downloads\AWSKeyPair.pem" ubuntu@ec2-3-25-112-64.ap-southeast-2.compute.amazonaws.com where pem key 	  is located
+5.type sudo apt update (update packages)
+	sudo apt list --upgradable
+6.sudo apt install apache2
+  go to aws instance, security group then edit inbound rules add 80,http
+8. sudo apt install composer
+
+9. sudo apt install php -y
+10.  sudo apt install php8.1-cli php8.1-common php8.1-curl php8.1-gd php8.1-mbstring php8.1-intl php8.1-mysql php8.1-xml php8.1-zip -y
+11. sudo apt install npm
+	sudo apt install mysql-server
+	sudo mysql
+	ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Kodego_2023';
+12.cd /var/www/html
+13. sudo git clone https://github.com/jerum12/aws_sample_laravel_backend.git
+14.sudo chown -R ubuntu:ubuntu aws_sample_laravel_backend/
+15.cd aws_sample
+16. cp .env.example .env
+17. composer install
+18. php artisan key:generate
+19. nano .env
+20. cd /etc/apache2/sites-avaialable
+21 nano aws.conf
+22.<VirtualHost  *:80>
+
+
+        ServerAdmin aws@localhost
+        ServerName localhost
+        DocumentRoot /var/www/html/aws_sample_laravel_backend/public
+
+        <Directory /var/www/html/aws_sample_laravel_backend/public>
+                Options +FollowSymlinks
+                AllowOverride All
+                Require all granted
+
+        </Directory>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+
+</VirtualHost>
+	sudo chmod -R 777 aws.conf
+23. sudo a2dissite 000-default.conf
+24. sudo a2ensite aws.conf
+25. sudo a2enmod rewrite
+26. sudo systemctl restart apache2
+27. cd to var/www/html/aws
+
+28. php artisan migrate
+
+sudo - mysql
+mysql> USE mysql;
+mysql> UPDATE user SET plugin='mysql_native_password' WHERE User='root';
+mysql> FLUSH PRIVILEGES;
+mysql> exit;
+
+sudo service mysql restart
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Kodego_2023';
+
+30 .sudo chown -R www-data:www-data  aws_sample_laravel_backend
+
+31.php artisan passport:install
+
+https:
+
+1. security group add inbound rules
+
+ 2. sudo a2enmod ssl
+ 3. sudo systemctl restart apache2
+4. sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/capstone_backend.key -out /etc/ssl/certs/capstone_backend.crt
+5. cd etc/apache2/sites-available
+	cp capstone_backend.conf capstone_backend_ssl.conf
+	nano capstone_backend_ssl.conf
+	<VirtualHost  *:443>
+
+
+        ServerAdmin aws@localhost
+        ServerName localhost
+        DocumentRoot /var/www/html/aws_sample_laravel_backend/public
+
+        <Directory /var/www/html/aws_sample_laravel_backend/public>
+                Options +FollowSymlinks
+                AllowOverride ALL
+                Require all granted
+        </Directory>
+
+        SSLEngine on
+        SSLCertificateFile /etc/ssl/certs/capstone_backend.crt
+        SSLCertificateKeyFile /etc/ssl/private/capstone_backend.key
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+
+	</VirtualHost>
+
+6. sudo a2enmod ssl
+7. sudo a2ensite capstone_backend_ssl.conf
+	sudo apache2ctl -t
+8. sudo systemctl restart apache2
+
+                                  
+    RewriteEngine On
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    for redirect
+
+

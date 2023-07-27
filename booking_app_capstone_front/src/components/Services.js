@@ -22,6 +22,8 @@ import { useNavigate } from 'react-router-dom';
 
 import toast from 'react-hot-toast';
 
+const apiBackendUrl = process.env.REACT_APP_BACK_END_URL;
+
 const style = {
   position: 'absolute',
   top: '50%',
@@ -156,7 +158,7 @@ function Services() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/services', {
+        const response = await axios.get(`${apiBackendUrl}/services`, {
           headers: {
             Authorization: 'Bearer ' + localStorage.getItem('login_token'),
           },
@@ -206,21 +208,21 @@ function Services() {
     } else {
       try {
         if (transactionType === 'add') {
-          const response = await axios.post('http://127.0.0.1:8000/api/services', formData, {
+          const response = await axios.post(`${apiBackendUrl}/services`, formData, {
             headers: {
               Authorization: 'Bearer ' + localStorage.getItem('login_token'),
             },
           });
           console.log(response);
         } else if (transactionType === 'edit') {
-          const response = await axios.put(`http://127.0.0.1:8000/api/services/${id}`, formData, {
+          const response = await axios.put(`${apiBackendUrl}/services/${id}`, formData, {
             headers: {
               Authorization: 'Bearer ' + localStorage.getItem('login_token'),
             },
           });
           console.log(response);
         } else if (transactionType === 'delete') {
-          const response = await axios.delete(`http://127.0.0.1:8000/api/services/${id}`, {
+          const response = await axios.delete(`${apiBackendUrl}/services/${id}`, {
             headers: {
               Authorization: 'Bearer ' + localStorage.getItem('login_token'),
             },

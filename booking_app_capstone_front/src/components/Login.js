@@ -15,6 +15,8 @@ function Login() {
   const [error, setError] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
 
+  const apiBackendUrl = process.env.REACT_APP_BACK_END_URL;
+
   const handleLogin = async (event) => {
     event.preventDefault();
     setError('');
@@ -25,16 +27,17 @@ function Login() {
       return;
     } else {
       try {
-        const response = await axios.post('http://127.0.0.1:8000/api/login', formData);
+        const response = await axios.post(`${apiBackendUrl}/login`, formData);
+        console.log(response);
         const token = response.data.token;
-
+        setSubmitLoading(false);
         localStorage.setItem('login_token', token);
         navigate('/');
       } catch (error) {
         let errorMessage = error.response.data.error;
         setError(errorMessage);
+        setSubmitLoading(false);
       }
-      setSubmitLoading(false);
     }
   };
 
